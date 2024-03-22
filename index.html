@@ -4,7 +4,8 @@
 
 <h2>corru script generator</h2>
 <p>paste a script from a discord skit with the embassy server custom emoji</p>
-<p>or use actors as <code>moth: lol</code>. no actor makes sourceless text. use <code>endbutton: lalala</code> to create a custom script end button</p>
+<p>or use actors as <code>moth: lol</code>. no actor makes sourceless text. if you're using a colon in sourceless text escape it with a backslash</p>
+<p>use <code>endbutton: lalala</code> to create a custom script end button</p>
 <p>then hit the copy button and just paste the result into the console on any corru.observer page!</p>
 <p>inherited context example: <xmp><span definition="INHERITED CONTEXT::'predator';'infection';'terror'">SECRI</span></xmp></p>
 
@@ -85,6 +86,7 @@
 				currentSpeaker = currentSpeaker.split("~")[0];
 
 				speechValue = speechValue.replaceAll("%%TEMP2%%", ":");
+				currentSpeaker = currentSpeaker.replaceAll("%%TEMP2%%", ":");
 
 			}
 			else {
@@ -124,6 +126,11 @@
 		}
 
 		dialogueBody += '\n`)';
+
+		//i hate this thing leave me aloneg
+		dialogueBody = dialogueBody.replaceAll("%%TEMP%%", ":");
+		dialogueBody = dialogueBody.replaceAll("%%TEMP2%%", ":");
+		dialogueBody = dialogueBody.replaceAll("%%TEMP3%%", "::");
 
 		scriptBody += "startDialogue('customScript')"
 

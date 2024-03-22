@@ -5,9 +5,9 @@
 <h2>corru script generator</h2>
 <p>paste a script from a discord skit with the embassy server custom emoji</p>
 <p>or use actors as <code>moth: lol</code>. no actor makes sourceless text. if you're using a colon in sourceless text escape it with a backslash</p>
-<p>use <code>endbutton: lalala</code> to create a custom script end button</p>
 <p>then hit the copy button and just paste the result into the console on any corru.observer page!</p>
-<p>inherited context example: <xmp><span definition="INHERITED CONTEXT::'predator';'infection';'terror'">SECRI</span></xmp></p>
+<p>scroll all the way down for various info and tools!</p>
+
 
 <p>powered by <a href="https://file.garden/ZdYqv9vlqFbDy9iO/DIALOGUE_TOOLKIT%202.0%20credits%20to%20dem%20for%20organizing%20it.js">this script</a>, made by @noobogonis and @the_dem</p>
 
@@ -17,6 +17,27 @@
 <br>
 <textarea id="userinput" name="w3review" rows="100" cols="200" placeholder=":moth: lol&#10;endbutton: ok">
 </textarea>
+
+<br>
+<p>inherited context example: <xmp><span definition="INHERITED CONTEXT::'predator';'infection';'terror'">secri</span></xmp></p>
+<p>automatically add inherited context to text</p>
+<input type="text" name="contextifierType" id="contextifierType" value="INHERITED CONTEXT">
+<input type="text" name="contextifierWord" id="contextifierWord" placeholder="secri">
+<input type="text" name="contextifierContexts" id="contextifierContexts" placeholder="predator; infection; terror">
+<button type="button" name="useContextifier" onclick="useContextifier()">replace!</button>
+<button type="button" name="undoContextifier" onclick="undoContextifier()">nevermind, undo</button>
+<input type="checkbox" id="contextifierCaps" name="contextifierCaps" value=contextifierCaps checked=true>
+<label for="contextifierCaps">repeat for caps text too</label>
+<br>
+
+<p>mass replacer tool</p>
+<input type="text" name="massReplacerFrom" id="massReplacerFrom" placeholder="from">
+<input type="text" name="massReplacerTo" id="massReplacerTo" placeholder="to">
+<button type="button" name="massReplacerReplace" onclick="useMassReplacer()">replace!</button>
+<button type="button" name="massReplacerUndo" onclick="undoMassReplace()">wait! undo please!</button>
+<input type="checkbox" id="replacerCaps" name="replacerCaps" value=replacerCaps>
+<label for="replacerCaps">repeat for caps text too</label>
+<br>
 
 <script type="text/javascript">
 	let actorLoadingScript = ""; //only retrieved once per page reload
@@ -74,8 +95,9 @@
 
 			if (line.includes(':')){
 				line = line.replaceAll("\\:", "%%TEMP2%%");
-				if (line.startsWith(":")) line = line.replace(":", "");
 				line = line.replaceAll("::", "%%TEMP3%%");
+				if (line.startsWith(":")) line = line.replace(":", "");
+
 				if (line.includes(":")) {
 					line = line.replace(":", "%%TEMP%%");
 					line = line.replaceAll("%%TEMP3%%", "::");
@@ -83,6 +105,7 @@
 				}
 				else currentSpeaker = "sourceless";
 				speechValue = line.split("%%TEMP%%")[1] || "​"; //there's a zero width space here to make empty messages
+				if (currentSpeaker == "sourceless") speechValue = line;
 				currentSpeaker = currentSpeaker.split("~")[0];
 
 				speechValue = speechValue.replaceAll("%%TEMP2%%", ":");
@@ -138,6 +161,56 @@
 		else navigator.clipboard.writeText(actorInit + "\n\n" + dialogueBody + "\n\n" + scriptBody);
 		if (unfoundSpeakers.length > 0) element_status.innerHTML = "hey! i don't see " + unfoundSpeakers.join(", ") + " in the list of actors! are you sure they're correct!";
 		else element_status.innerHTML = "script copied!";
+	}
+
+	let preReplace = "";
+	function useMassReplacer(){
+		let from = document.getElementById('massReplacerFrom').value;
+		let to = document.getElementById('massReplacerTo').value;
+		let userInput = document.getElementById('userinput').value;
+		preReplace = userInput;
+		preContextify = "";
+		userInput = userInput.replaceAll(from, to);
+		if (document.getElementById('replacerCaps').checked) userInput = userInput.replaceAll(from.toUpperCase(), to.toUpperCase());
+
+		document.getElementById('userinput').value = userInput;
+
+	}
+	function undoMassReplace(){
+		if (preReplace) document.getElementById('userinput').value = preReplace;
+	}
+
+	let preContextify = "";
+	function useContextifier(){
+		let word = document.getElementById('contextifierWord').value;
+		let contexts = document.getElementById('contextifierContexts').value;
+		if (!word || !contexts) return;
+		let type = document.getElementById('contextifierType').value;
+		let userInput = document.getElementById('userinput').value;
+		preContextify = userInput;
+		preReplace = "";
+		let quotifiedContexts =[];
+		for (context of contexts.split(";")){
+			if (context.endsWith("'") && context.startsWith("'")) quotifiedContexts.push(context.trim());
+			else quotifiedContexts.push("'"+ context.trim()+"'");
+		}
+		let finalContextsString = quotifiedContexts.join(";");
+
+		//mask away all words that already have contexts
+		userInput = userInput.replaceAll(`'">${word}</span>`, "%%TEMP4%%")
+		userInput = userInput.replaceAll(`'">${word.toUpperCase()}</span>`, "%%TEMP4_1%%")
+
+		userInput = userInput.replaceAll(word, `<span definition="${type}::${finalContextsString}">${word}</span>`);
+		if (document.getElementById('contextifierCaps').checked) userInput = userInput.replaceAll(word.toUpperCase(), `<span definition="${type}::${finalContextsString}">${word.toUpperCase()}</span>`);
+
+		userInput = userInput.replaceAll("%%TEMP4%%", `'">${word}</span>`);
+		userInput = userInput.replaceAll("%%TEMP4_1%%", `'">${word.toUpperCase()}</span>`);
+
+		document.getElementById('userinput').value = userInput;
+
+	}
+	function undoContextifier(){
+		if (preContextify) document.getElementById('userinput').value = preContextify;
 	}
 
 	const speakerMap={

@@ -11,6 +11,7 @@
 <p>powered by <a href="https://file.garden/ZdYqv9vlqFbDy9iO/DIALOGUE_TOOLKIT%202.0%20credits%20to%20dem%20for%20organizing%20it.js">this script</a>, made by @noobogonis and @the_dem</p>
 
 <button type="button" name="copy script" onclick="copyScript()">copy script</button>
+<button type="button" name="copy dialogue only" onclick="copyDialogueOnly()">copy dialogue only</button>
 <p id="element_status"></p>
 <br>
 <textarea id="userinput" name="w3review" rows="100" cols="200" placeholder=":moth: lol&#10;endbutton: ok">
@@ -20,7 +21,9 @@
 	let actorLoadingScript = ""; //only retrieved once per page reload
 	let actorDump = "envoy";
 
-	async function copyScript(){
+	async function copyDialogueOnly() {copyScript(true)}
+
+	async function copyScript(dialogueOnly){
 
 		let actorInit = "";
 		let dialogueBody = "";
@@ -124,7 +127,8 @@
 
 		scriptBody += "startDialogue('customScript')"
 
-		navigator.clipboard.writeText(actorInit + "\n\n" + dialogueBody + "\n\n" + scriptBody);
+		if (dialogueOnly) navigator.clipboard.writeText(dialogueBody + "\n\n" + scriptBody);
+		else navigator.clipboard.writeText(actorInit + "\n\n" + dialogueBody + "\n\n" + scriptBody);
 		if (unfoundSpeakers.length > 0) element_status.innerHTML = "hey! i don't see " + unfoundSpeakers.join(", ") + " in the list of actors! are you sure they're correct!";
 		else element_status.innerHTML = "script copied!";
 	}

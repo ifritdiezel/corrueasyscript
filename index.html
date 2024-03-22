@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<meta content="corru dialogue generator" property="og:title" />
+<meta content="write custom scripts easily" property="og:description" />
+
+<h2>corru script generator</h2>
+<p>paste a script from a discord skit with the embassy server custom emoji</p>
+<p>or use actors as <code>moth: lol</code>. use <code>endbutton: lalala</code> to create a custom script end button</p>
+<p>then hit the copy button and just paste the result into the console on any corru.observer page!</p>
+<p>context example: <xmp><span definition="INHERITED CONTEXT::'predator';'infection';'terror'">SECRI</span></xmp></p>
+
+<p>powered by <a href="https://file.garden/ZdYqv9vlqFbDy9iO/DIALOGUE_TOOLKIT%202.0%20credits%20to%20dem%20for%20organizing%20it.js">this script</a>, made by @noobogonis and @the_dem</p>
+
+<button type="button" name="copy script" onclick="copyScript()">copy script</button>
+<p id="element_status"></p>
+<br>
+<textarea id="userinput" name="w3review" rows="100" cols="200" placeholder=":moth: lol&#10;endbutton: ok">
+</textarea>
+
+<script type="text/javascript">
+	let actorLoadingScript = ""; //only retrieved once per page reload
+	let actorDump = "";
+
+	async function copyScript(){
+
+		let finalScript = "";
+
+		if (!actorLoadingScript) try {
+			element_status.innerHTML = "now retrieving the actor setup script...";
+			await fetch('https://file.garden/ZdYqv9vlqFbDy9iO/DIALOGUE_TOOLKIT%202.0%20credits%20to%20dem%20for%20organizing%20it.js')
+			.then(response => response.text())
+			.then((data) => {
+				let isAtActorDefs = false;
+				let isListingActors = true;
+				for (line of data.split("\n")){
+					if (line.includes("////////// DIALOGUE ACTORS //////////")) isAtActorDefs = true;
+					if (line.includes("////////// DIALOGUE OBJECT //////////")) isListingActors = false;
+					if (line.includes("MOD LOAD")) break;
+					if (isAtActorDefs) actorLoadingScript += line + "\n";
+					if (isListingActors) actorDump += line + "\n";
+				}
+			})
+		} catch (e){
+			element_status.innerHTML = "oh no! an error occured retrieving the actor script! please notify me, @ifritdiezel!";
+			console.log(e);
+			return;
+		}
+
+		if (!actorLoadingScript) {
+			element_status.innerHTML = "oh no! an error occured retrieving the actor script! please notify me, @ifritdiezel!";
+			return;
+		}
+
+		console.log(actorDump);
+		finalScript += actorLoadingScript;
+
+		userInput = document.getElementById('userinput').value;
+
+		finalScript += '\n\nenv.dialogues["customScript"] = generateDialogueObject(`\nstart';
+
+		previousSpeaker = "";
+		currentSpeaker = "";
+		unfoundSpeakers = [];
+		hasEndButton = false;
+		for (line of userInput.split('\n')){
+			if (!line) continue;
+			args = line.split(' ');
+			let speechValue = args.slice(1).join(" ");
+			if (args[0].includes(':')){
+
+				currentSpeaker = args[0].replaceAll("::", "--");
+				currentSpeaker = currentSpeaker.replaceAll(":", "").split("~")[0];
+				currentSpeaker = currentSpeaker.replaceAll("--", "::");
+
+			}
+			else {
+				currentSpeaker = "sourceless";
+				speechValue = line;
+			}
+			if (currentSpeaker.toLowerCase().startsWith("endbutton")){
+				hasEndButton = true;
+				finalScript += "\n    \n";
+				finalScript += "    RESPONSES::self\n";
+				finalScript += "        " + speechValue +"<+>END"
+			}
+			else if (currentSpeaker){
+				if (!speechValue) speechValue = " ";
+				currentSpeaker = speakerMap[currentSpeaker] || currentSpeaker;
+				if (currentSpeaker != previousSpeaker) {
+					if (previousSpeaker) finalScript += "\n";
+					finalScript += "\n";
+					finalScript += "    "+currentSpeaker;
+				}
+				finalScript += "\n";
+				finalScript += "        " + speechValue;
+
+				previousSpeaker = currentSpeaker;
+
+				if (!unfoundSpeakers.includes(currentSpeaker.split('::')[0]) && !actorDump.includes(currentSpeaker.split('::')[0])) unfoundSpeakers.push(currentSpeaker);
+			}
+			else {
+				console.log("error in line " + line)
+			}
+		}
+
+		if (!hasEndButton){
+			finalScript += "\n    \n";
+			finalScript += "    RESPONSES::self\n";
+			finalScript += "        end<+>END"
+		}
+
+		finalScript += '\n`)';
+
+		finalScript += "\n\nstartDialogue('customScript')"
+
+		navigator.clipboard.writeText(finalScript);
+		if (unfoundSpeakers.length > 0) element_status.innerHTML = "hey! i don't see " + unfoundSpeakers.join(", ") + " in the list of actors! are you sure they're correct!";
+		else element_status.innerHTML = "script copied!";
+	}
+
+	const speakerMap={
+		"interloper":"self",
+		"velzie":"unknown",
+		"memory hole":"¥Óñ«J",
+		"vekoa":"groundsmind",
+		"proxy":"sys",
+		"geliblueeyes": "geli::blueeyes",
+		"geliconcern": "geli::concern",
+		"gelihappy": "geli::happy",
+		"gelithink": "geli::think",
+		"geliuncanny": "geli::uncanny",
+		"bsteliblueeyes": "bsteli::blueeyes",
+		"bsteliconcern": "bsteli::concern",
+		"bstelihappy": "bsteli::happy",
+		"bstelithink": "bsteli::think",
+		"bsteliuncanny": "bsteli::uncanny"
+	}
+
+</script>

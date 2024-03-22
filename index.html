@@ -22,7 +22,9 @@
 
 	async function copyScript(){
 
-		let finalScript = "";
+		let actorInit = "";
+		let dialogueBody = "";
+		let scriptBody = "";
 
 		if (!actorLoadingScript) try {
 			element_status.innerHTML = "now retrieving the actor setup script...";
@@ -50,12 +52,11 @@
 			return;
 		}
 
-		console.log(actorDump);
-		finalScript += actorLoadingScript;
+		actorInit += actorLoadingScript;
 
 		userInput = document.getElementById('userinput').value;
 
-		finalScript += '\n\nenv.dialogues["customScript"] = generateDialogueObject(`\nstart';
+		dialogueBody += '\n\nenv.dialogues["customScript"] = generateDialogueObject(`\nstart';
 
 		previousSpeaker = "";
 		currentSpeaker = "";
@@ -63,13 +64,24 @@
 		hasEndButton = false;
 		for (line of userInput.split('\n')){
 			if (!line) continue;
+			currentSpeaker = "";
 			args = line.split(' ');
-			let speechValue = args.slice(1).join(" ");
-			if (args[0].includes(':')){
+			let speechValue = "";
 
-				currentSpeaker = args[0].replaceAll("::", "--");
-				currentSpeaker = currentSpeaker.replaceAll(":", "").split("~")[0];
-				currentSpeaker = currentSpeaker.replaceAll("--", "::");
+			if (line.includes(':')){
+				line = line.replaceAll("\\:", "%%TEMP2%%");
+				if (line.startsWith(":")) line = line.replace(":", "");
+				line = line.replaceAll("::", "%%TEMP3%%");
+				if (line.includes(":")) {
+					line = line.replace(":", "%%TEMP%%");
+					currentSpeaker = line.split("%%TEMP%%")[0];
+				}
+				else currentSpeaker = "sourceless";
+				speechValue = line.split("%%TEMP%%")[1] || line;
+				currentSpeaker = currentSpeaker.split("~")[0];
+				line = line.replaceAll("%%TEMP3%%", "::");
+
+				speechValue = speechValue.replaceAll("%%TEMP2%%", ":");
 
 			}
 			else {
@@ -78,20 +90,20 @@
 			}
 			if (currentSpeaker.toLowerCase().startsWith("endbutton")){
 				hasEndButton = true;
-				finalScript += "\n    \n";
-				finalScript += "    RESPONSES::self\n";
-				finalScript += "        " + speechValue +"<+>END"
+				dialogueBody += "\n    \n";
+				dialogueBody += "    RESPONSES::self\n";
+				dialogueBody += "        " + speechValue +"<+>END"
 			}
 			else if (currentSpeaker){
 				if (!speechValue) speechValue = " ";
 				currentSpeaker = speakerMap[currentSpeaker] || currentSpeaker;
 				if (currentSpeaker != previousSpeaker) {
-					if (previousSpeaker) finalScript += "\n";
-					finalScript += "\n";
-					finalScript += "    "+currentSpeaker;
+					if (previousSpeaker) dialogueBody += "\n";
+					dialogueBody += "\n";
+					dialogueBody += "    "+currentSpeaker;
 				}
-				finalScript += "\n";
-				finalScript += "        " + speechValue;
+				dialogueBody += "\n";
+				dialogueBody += "        " + speechValue;
 
 				previousSpeaker = currentSpeaker;
 
@@ -103,16 +115,16 @@
 		}
 
 		if (!hasEndButton){
-			finalScript += "\n    \n";
-			finalScript += "    RESPONSES::self\n";
-			finalScript += "        end<+>END"
+			dialogueBody += "\n    \n";
+			dialogueBody += "    RESPONSES::self\n";
+			dialogueBody += "        end<+>END"
 		}
 
-		finalScript += '\n`)';
+		dialogueBody += '\n`)';
 
-		finalScript += "\n\nstartDialogue('customScript')"
+		scriptBody += "startDialogue('customScript')"
 
-		navigator.clipboard.writeText(finalScript);
+		navigator.clipboard.writeText(actorInit + "\n\n" + dialogueBody + "\n\n" + scriptBody);
 		if (unfoundSpeakers.length > 0) element_status.innerHTML = "hey! i don't see " + unfoundSpeakers.join(", ") + " in the list of actors! are you sure they're correct!";
 		else element_status.innerHTML = "script copied!";
 	}

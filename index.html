@@ -83,6 +83,7 @@
 				speechValue = line.split("%%TEMP%%")[1] || line;
 				currentSpeaker = currentSpeaker.split("~")[0];
 				line = line.replaceAll("%%TEMP3%%", "::");
+				speechValue = speechValue.replaceAll("%%TEMP3%%", "::");
 
 				speechValue = speechValue.replaceAll("%%TEMP2%%", ":");
 

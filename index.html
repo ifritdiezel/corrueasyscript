@@ -82,7 +82,7 @@
 					currentSpeaker = line.split("%%TEMP%%")[0];
 				}
 				else currentSpeaker = "sourceless";
-				speechValue = line.split("%%TEMP%%")[1] || line;
+				speechValue = line.split("%%TEMP%%")[1] || "​"; //there's a zero width space here to make empty messages
 				currentSpeaker = currentSpeaker.split("~")[0];
 
 				speechValue = speechValue.replaceAll("%%TEMP2%%", ":");

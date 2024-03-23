@@ -20,6 +20,9 @@
 
 <br>
 <p>image example: <xmp><img src="https://file.garden/ZBykMtEMpVTUWZ-e/dither-9.png" width="500px"/></xmp></p>
+<p>add a custom end button using <code>endButton: lmao</code></p>
+<p>set the default speaker with <code>defaultSpeaker: akizet</code>. good for making a character monologue or act out a greentext</p>
+
 <p>inherited context example: <xmp><span definition="INHERITED CONTEXT::'predator';'infection';'terror'">secri</span></xmp></p>
 <p>automatically add inherited context to text</p>
 <input type="text" name="contextifierType" id="contextifierType" value="INHERITED CONTEXT" placeholder="INHERITED CONTEXT">
@@ -88,6 +91,7 @@
 		currentSpeaker = "";
 		unfoundSpeakers = [];
 		hasEndButton = false;
+		let defaultSpeaker = "sourceless";
 		for (line of userInput.split('\n')){
 			if (!line) continue;
 			currentSpeaker = "";
@@ -104,7 +108,7 @@
 					line = line.replaceAll("%%TEMP3%%", "::");
 					currentSpeaker = line.split("%%TEMP%%")[0];
 				}
-				else currentSpeaker = "sourceless";
+				else currentSpeaker = defaultSpeaker;
 				speechValue = line.split("%%TEMP%%")[1] || "​"; //there's a zero width space here to make empty messages
 				if (currentSpeaker == "sourceless") speechValue = line;
 				currentSpeaker = currentSpeaker.split("~")[0];
@@ -114,7 +118,7 @@
 
 			}
 			else {
-				currentSpeaker = "sourceless";
+				currentSpeaker = defaultSpeaker;
 				speechValue = line;
 			}
 			if (currentSpeaker.toLowerCase().startsWith("endbutton")){
@@ -122,6 +126,9 @@
 				dialogueBody += "\n    \n";
 				dialogueBody += "    RESPONSES::self\n";
 				dialogueBody += "        " + speechValue +"<+>END"
+			}
+			else if (currentSpeaker.toLowerCase().startsWith("defaultspeaker")){
+				defaultSpeaker = speechValue.trim() || "sourceless";
 			}
 			else if (currentSpeaker){
 				if (!speechValue) speechValue = " ";

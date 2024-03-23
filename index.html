@@ -6,7 +6,7 @@
 <p>paste a script from a discord skit with the embassy server custom emoji</p>
 <p>or use actors as <code>moth: lol</code>. no actor makes sourceless text. if you're using a colon in sourceless text escape it with a backslash</p>
 <p>then hit the copy button and just paste the result into the console on any corru.observer page!</p>
-<p>scroll all the way down for various info and tools!</p>
+<p>scroll all the way down ("End" key) for various info and tools!</p>
 
 
 <p>powered by <a href="https://file.garden/ZdYqv9vlqFbDy9iO/DIALOGUE_TOOLKIT%202.0%20credits%20to%20dem%20for%20organizing%20it.js">this script</a>, made by @noobogonis and @the_dem</p>
@@ -15,12 +15,14 @@
 <button type="button" name="copy dialogue only" onclick="copyDialogueOnly()">copy dialogue only</button>
 <p id="element_status"></p>
 <br>
-<textarea id="userinput" name="w3review" rows="100" cols="200" placeholder=":moth: lol&#10;endbutton: ok">
+<textarea id="userinput" name="userInput" rows="100" cols="200" placeholder=":moth: lol&#10;endbutton: ok">
 </textarea>
 
 <br>
 <p>image example: <xmp><img src="https://file.garden/ZBykMtEMpVTUWZ-e/dither-9.png" width="500px"/></xmp></p>
+
 <p>add a custom end button using <code>endButton: lmao</code></p>
+
 <p>set the default speaker with <code>defaultSpeaker: akizet</code>. good for making a character monologue or act out a greentext</p>
 
 <p>inherited context example: <xmp><span definition="INHERITED CONTEXT::'predator';'infection';'terror'">secri</span></xmp></p>
@@ -43,202 +45,275 @@
 <label for="replacerCaps">repeat for caps text too</label>
 <br>
 
+<p>add custom actors <button type="button" name="copyTagTestingScript" onclick="copyTagTestingScript()">copy script demonstrating all tags</button></p>
+<textarea id="customActorsInput" name="customActorsInput" cols="200" placeholder="see original script above for examples">env.dialogueActors["ziya"] = {
+    image: "https://uh.fyi/resources/ziya/portrait.gif?",
+    element: ".truecreature",
+    type: "obesk qou portrait-contain portrait-badstatic",
+    voice: ()=>play('talklaugh', 1.3)
+};
+</textarea>
+
+
 <script type="text/javascript">
-	let actorLoadingScript = ""; //only retrieved once per page reload
-	let actorDump = "envoy";
+let actorLoadingScript = ""; //only retrieved once per page reload
+let actorDump = "envoy";
+let customActorsScript = "";
 
-	async function copyDialogueOnly() {copyScript(true)}
+async function geActorLoadingScript(){
+	if (!actorLoadingScript) try {
+		element_status.innerHTML = "now retrieving the actor setup script...";
+		await fetch('https://file.garden/ZdYqv9vlqFbDy9iO/DIALOGUE_TOOLKIT%202.0%20credits%20to%20dem%20for%20organizing%20it.js')
+		.then(response => response.text())
+		.then((data) => {
+			let isAtActorDefs = false;
+			let isListingActors = true;
+			for (line of data.split("\n")){
+				if (line.includes("////////// DIALOGUE ACTORS //////////")) isAtActorDefs = true;
+				if (line.includes("////////// DIALOGUE OBJECT //////////")) isListingActors = false;
+				if (line.includes("MOD LOAD")) break;
+				if (isAtActorDefs) actorLoadingScript += line + "\n";
+				if (isListingActors) actorDump += line + "\n";
+			}
+		})
+	} catch (e){
+		element_status.innerHTML = "oh no! an error occured retrieving the actor script! please notify me, @ifritdiezel!";
+		console.log(e);
+		return;
+	}
+}
 
-	async function copyScript(dialogueOnly){
+async function copyDialogueOnly() {copyScript(true)}
 
-		let actorInit = "";
-		let dialogueBody = "";
-		let scriptBody = "";
+async function copyScript(dialogueOnly){
 
-		if (!actorLoadingScript) try {
-			element_status.innerHTML = "now retrieving the actor setup script...";
-			await fetch('https://file.garden/ZdYqv9vlqFbDy9iO/DIALOGUE_TOOLKIT%202.0%20credits%20to%20dem%20for%20organizing%20it.js')
-			.then(response => response.text())
-			.then((data) => {
-				let isAtActorDefs = false;
-				let isListingActors = true;
-				for (line of data.split("\n")){
-					if (line.includes("////////// DIALOGUE ACTORS //////////")) isAtActorDefs = true;
-					if (line.includes("////////// DIALOGUE OBJECT //////////")) isListingActors = false;
-					if (line.includes("MOD LOAD")) break;
-					if (isAtActorDefs) actorLoadingScript += line + "\n";
-					if (isListingActors) actorDump += line + "\n";
-				}
-			})
-		} catch (e){
-			element_status.innerHTML = "oh no! an error occured retrieving the actor script! please notify me, @ifritdiezel!";
-			console.log(e);
-			return;
-		}
+	let actorInit = "";
+	let dialogueBody = "";
+	let scriptBody = "";
 
-		if (!actorLoadingScript) {
-			element_status.innerHTML = "oh no! an error occured retrieving the actor script! please notify me, @ifritdiezel!";
-			return;
-		}
+	if (!actorLoadingScript) await geActorLoadingScript();
 
-		actorInit += actorLoadingScript;
+	if (!actorLoadingScript) {
+		element_status.innerHTML = "oh no! an error occured retrieving the actor script! please notify me, @ifritdiezel!";
+		return;
+	}
 
-		userInput = document.getElementById('userinput').value;
+	actorInit += actorLoadingScript;
 
-		dialogueBody += '\n\nenv.dialogues["customScript"] = generateDialogueObject(`\nstart';
+	userInput = document.getElementById('userinput').value;
+	customActors = document.getElementById('customActorsInput').value;
 
-		previousSpeaker = "";
+	dialogueBody += '\n\nenv.dialogues["customScript"] = generateDialogueObject(`\nstart';
+
+	previousSpeaker = "";
+	currentSpeaker = "";
+	unfoundSpeakers = [];
+	hasEndButton = false;
+	let defaultSpeaker = "sourceless";
+	for (line of userInput.split('\n')){
+		if (!line) continue;
 		currentSpeaker = "";
-		unfoundSpeakers = [];
-		hasEndButton = false;
-		let defaultSpeaker = "sourceless";
-		for (line of userInput.split('\n')){
-			if (!line) continue;
-			currentSpeaker = "";
-			args = line.split(' ');
-			let speechValue = "";
+		args = line.split(' ');
+		let speechValue = "";
 
-			if (line.includes(':')){
-				line = line.replaceAll("\\:", "%%TEMP2%%");
-				line = line.replaceAll("::", "%%TEMP3%%");
-				if (line.startsWith(":")) line = line.replace(":", "");
+		if (line.includes(':')){
+			line = line.replaceAll("\\:", "%%TEMP2%%");
+			line = line.replaceAll("::", "%%TEMP3%%");
+			if (line.startsWith(":")) line = line.replace(":", "");
 
-				if (line.includes(":")) {
-					line = line.replace(":", "%%TEMP%%");
-					line = line.replaceAll("%%TEMP3%%", "::");
-					currentSpeaker = line.split("%%TEMP%%")[0];
-				}
-				else currentSpeaker = defaultSpeaker;
-				speechValue = line.split("%%TEMP%%")[1] || "​"; //there's a zero width space here to make empty messages
-				if (currentSpeaker == "sourceless") speechValue = line;
-				currentSpeaker = currentSpeaker.split("~")[0];
+			if (line.includes(":")) {
+				line = line.replace(":", "%%TEMP%%");
+				line = line.replaceAll("%%TEMP3%%", "::");
+				currentSpeaker = line.split("%%TEMP%%")[0];
+			}
+			else currentSpeaker = defaultSpeaker;
+			speechValue = line.split("%%TEMP%%")[1] || "​"; //there's a zero width space here to make empty messages
+			if (currentSpeaker == "sourceless") speechValue = line;
+			currentSpeaker = currentSpeaker.split("~")[0];
 
-				speechValue = speechValue.replaceAll("%%TEMP2%%", ":");
-				currentSpeaker = currentSpeaker.replaceAll("%%TEMP2%%", ":");
+			speechValue = speechValue.replaceAll("%%TEMP2%%", ":");
+			currentSpeaker = currentSpeaker.replaceAll("%%TEMP2%%", ":");
 
-			}
-			else {
-				currentSpeaker = defaultSpeaker;
-				speechValue = line;
-			}
-			if (currentSpeaker.toLowerCase().startsWith("endbutton")){
-				hasEndButton = true;
-				dialogueBody += "\n    \n";
-				dialogueBody += "    RESPONSES::self\n";
-				dialogueBody += "        " + speechValue +"<+>END"
-			}
-			else if (currentSpeaker.toLowerCase().startsWith("defaultspeaker")){
-				defaultSpeaker = speechValue.trim() || "sourceless";
-			}
-			else if (currentSpeaker){
-				if (!speechValue) speechValue = " ";
-				currentSpeaker = speakerMap[currentSpeaker] || currentSpeaker;
-				if (currentSpeaker != previousSpeaker) {
-					if (previousSpeaker) dialogueBody += "\n";
-					dialogueBody += "\n";
-					dialogueBody += "    "+currentSpeaker;
-				}
-				dialogueBody += "\n";
-				dialogueBody += "        " + speechValue;
-
-				previousSpeaker = currentSpeaker;
-
-				if (!unfoundSpeakers.includes(currentSpeaker.split('::')[0]) && !actorDump.includes(currentSpeaker.split('::')[0])) unfoundSpeakers.push(currentSpeaker);
-			}
-			else {
-				console.log("error in line " + line)
-			}
 		}
-
-		if (!hasEndButton){
+		else {
+			currentSpeaker = defaultSpeaker;
+			speechValue = line;
+		}
+		if (currentSpeaker.toLowerCase().startsWith("endbutton")){
+			hasEndButton = true;
 			dialogueBody += "\n    \n";
 			dialogueBody += "    RESPONSES::self\n";
-			dialogueBody += "        end<+>END"
+			dialogueBody += "        " + speechValue +"<+>END"
 		}
-
-		dialogueBody += '\n`)';
-
-		//i hate this thing leave me aloneg
-		dialogueBody = dialogueBody.replaceAll("%%TEMP%%", ":");
-		dialogueBody = dialogueBody.replaceAll("%%TEMP2%%", ":");
-		dialogueBody = dialogueBody.replaceAll("%%TEMP3%%", "::");
-
-		scriptBody += "startDialogue('customScript')"
-
-		if (dialogueOnly) navigator.clipboard.writeText(dialogueBody + "\n\n" + scriptBody);
-		else navigator.clipboard.writeText(actorInit + "\n\n" + dialogueBody + "\n\n" + scriptBody);
-		if (unfoundSpeakers.length > 0) element_status.innerHTML = "hey! i don't see " + unfoundSpeakers.join(", ") + " in the list of actors! are you sure they're correct!";
-		else element_status.innerHTML = "script copied!";
-	}
-
-	let preReplace = "";
-	function useMassReplacer(){
-		let from = document.getElementById('massReplacerFrom').value;
-		let to = document.getElementById('massReplacerTo').value;
-		let userInput = document.getElementById('userinput').value;
-		preReplace = userInput;
-		preContextify = "";
-		userInput = userInput.replaceAll(from, to);
-		if (document.getElementById('replacerCaps').checked) userInput = userInput.replaceAll(from.toUpperCase(), to.toUpperCase());
-
-		document.getElementById('userinput').value = userInput;
-
-	}
-	function undoMassReplace(){
-		if (preReplace) document.getElementById('userinput').value = preReplace;
-	}
-
-	let preContextify = "";
-	function useContextifier(){
-		let word = document.getElementById('contextifierWord').value;
-		let contexts = document.getElementById('contextifierContexts').value;
-		if (!word || !contexts) return;
-		let type = document.getElementById('contextifierType').value;
-		let userInput = document.getElementById('userinput').value;
-		preContextify = userInput;
-		preReplace = "";
-		let quotifiedContexts =[];
-		for (context of contexts.split(";")){
-			if (context.endsWith("'") && context.startsWith("'")) quotifiedContexts.push(context.trim());
-			else quotifiedContexts.push("'"+ context.trim()+"'");
+		else if (currentSpeaker.toLowerCase().startsWith("defaultspeaker")){
+			defaultSpeaker = speechValue.trim() || "sourceless";
 		}
-		let finalContextsString = quotifiedContexts.join(";");
+		else if (currentSpeaker){
+			if (!speechValue) speechValue = " ";
+			currentSpeaker = speakerMap[currentSpeaker] || currentSpeaker;
+			if (currentSpeaker != previousSpeaker) {
+				if (previousSpeaker) dialogueBody += "\n";
+				dialogueBody += "\n";
+				dialogueBody += "    "+currentSpeaker;
+			}
+			dialogueBody += "\n";
+			dialogueBody += "        " + speechValue;
 
-		//mask away all words that already have contexts
-		userInput = userInput.replaceAll(`'">${word}</span>`, "%%TEMP4%%")
-		userInput = userInput.replaceAll(`'">${word.toUpperCase()}</span>`, "%%TEMP4_1%%")
+			previousSpeaker = currentSpeaker;
 
-		userInput = userInput.replaceAll(word, `<span definition="${type}::${finalContextsString}">${word}</span>`);
-		if (document.getElementById('contextifierCaps').checked) userInput = userInput.replaceAll(word.toUpperCase(), `<span definition="${type}::${finalContextsString}">${word.toUpperCase()}</span>`);
-
-		userInput = userInput.replaceAll("%%TEMP4%%", `'">${word}</span>`);
-		userInput = userInput.replaceAll("%%TEMP4_1%%", `'">${word.toUpperCase()}</span>`);
-
-		document.getElementById('userinput').value = userInput;
-
+			if (!unfoundSpeakers.includes(currentSpeaker.split('::')[0]) && !actorDump.includes(currentSpeaker.split('::')[0]) && !customActors.includes(currentSpeaker.split('::')[0])) unfoundSpeakers.push(currentSpeaker);
+		}
+		else {
+			console.log("error in line " + line)
+		}
 	}
-	function undoContextifier(){
-		if (preContextify) document.getElementById('userinput').value = preContextify;
+
+	if (!hasEndButton){
+		dialogueBody += "\n    \n";
+		dialogueBody += "    RESPONSES::self\n";
+		dialogueBody += "        end<+>END"
 	}
 
-	const speakerMap={
-		"interloper":"self",
-		"velzie":"unknown",
-		"memory hole":"¥Óñ«J",
-		"vekoa":"groundsmind",
-		"proxy":"sys",
-		"mindspike":"sys",
-		"geliblueeyes": "geli::blueeyes",
-		"geliconcern": "geli::concern",
-		"gelihappy": "geli::happy",
-		"gelithink": "geli::think",
-		"geliuncanny": "geli::uncanny",
-		"bsteliblueeyes": "bsteli::blueeyes",
-		"bsteliconcern": "bsteli::concern",
-		"bstelihappy": "bsteli::happy",
-		"bstelithink": "bsteli::think",
-		"bsteliuncanny": "bsteli::uncanny",
-		"gordon":"envoy"
+	dialogueBody += '\n`)';
+
+	//i hate this thing leave me aloneg
+	dialogueBody = dialogueBody.replaceAll("%%TEMP%%", ":");
+	dialogueBody = dialogueBody.replaceAll("%%TEMP2%%", ":");
+	dialogueBody = dialogueBody.replaceAll("%%TEMP3%%", "::");
+
+	scriptBody += "startDialogue('customScript')"
+
+	if (dialogueOnly) navigator.clipboard.writeText(dialogueBody + "\n\n" + scriptBody);
+	else navigator.clipboard.writeText(actorInit + "\n\n" + customActors + "\n\n"  + dialogueBody + "\n\n" + scriptBody);
+	if (unfoundSpeakers.length > 0) element_status.innerHTML = "hey! i don't see " + unfoundSpeakers.join(", ") + " in the list of actors! are you sure they're correct!";
+	else element_status.innerHTML = "script copied!";
+}
+
+let preReplace = "";
+function useMassReplacer(){
+	let from = document.getElementById('massReplacerFrom').value;
+	let to = document.getElementById('massReplacerTo').value;
+	let userInput = document.getElementById('userinput').value;
+	preReplace = userInput;
+	preContextify = "";
+	userInput = userInput.replaceAll(from, to);
+	if (document.getElementById('replacerCaps').checked) userInput = userInput.replaceAll(from.toUpperCase(), to.toUpperCase());
+
+	document.getElementById('userinput').value = userInput;
+
+}
+function undoMassReplace(){
+	if (preReplace) document.getElementById('userinput').value = preReplace;
+}
+
+let preContextify = "";
+function useContextifier(){
+	let word = document.getElementById('contextifierWord').value;
+	let contexts = document.getElementById('contextifierContexts').value;
+	if (!word || !contexts) return;
+	let type = document.getElementById('contextifierType').value;
+	let userInput = document.getElementById('userinput').value;
+	preContextify = userInput;
+	preReplace = "";
+	let quotifiedContexts =[];
+	for (context of contexts.split(";")){
+		if (context.endsWith("'") && context.startsWith("'")) quotifiedContexts.push(context.trim());
+		else quotifiedContexts.push("'"+ context.trim()+"'");
 	}
+	let finalContextsString = quotifiedContexts.join(";");
+
+	//mask away all words that already have contexts
+	userInput = userInput.replaceAll(`'">${word}</span>`, "%%TEMP4%%")
+	userInput = userInput.replaceAll(`'">${word.toUpperCase()}</span>`, "%%TEMP4_1%%")
+
+	userInput = userInput.replaceAll(word, `<span definition="${type}::${finalContextsString}">${word}</span>`);
+	if (document.getElementById('contextifierCaps').checked) userInput = userInput.replaceAll(word.toUpperCase(), `<span definition="${type}::${finalContextsString}">${word.toUpperCase()}</span>`);
+
+	userInput = userInput.replaceAll("%%TEMP4%%", `'">${word}</span>`);
+	userInput = userInput.replaceAll("%%TEMP4_1%%", `'">${word.toUpperCase()}</span>`);
+
+	document.getElementById('userinput').value = userInput;
+
+}
+function undoContextifier(){
+	if (preContextify) document.getElementById('userinput').value = preContextify;
+}
+
+async function copyTagTestingScript(){
+	result = "";
+	if (!actorLoadingScript) await geActorLoadingScript();
+	tagTestingList = [];
+	for (aLSline of actorLoadingScript.split("\n")){
+		if (aLSline.trim().startsWith("type:")){
+			for (curTag of aLSline.replaceAll("type:", "").replaceAll(",", "").replaceAll(`"`, "").trim().split(" ")){
+				if (!tagTestingList.includes(curTag)) tagTestingList.push(curTag);
+			}
+		}
+	}
+	tagTestingList = tagTestingList.sort();
+
+	for (tag of tagTestingList){
+		result += `env.dialogueActors["tagTest-${tag}"] = {\n` +
+    `"name": "tagTest-${tag}",\n` +
+    `"image": "/img/sprites/obesk/tozik/portrait.gif",\n` +
+    `"type": "${tag}"\n` +
+		`}\n`
+	}
+
+	result += '\n\nenv.dialogues["tagTestingScript"] = generateDialogueObject(`\nstart';
+
+	let firstLine = true;
+	for (tag of tagTestingList){
+		if (!firstLine) result += "\n";
+		firstLine = true;
+		result += "\n";
+		result += "    tagTest-"+tag ;
+		result += "\n";
+		result += "        " + tag;
+	}
+
+	result += "\n    \n";
+	result += "    RESPONSES::self\n";
+	result += "        end<+>END"
+
+	result += '\n`)';
+	result += "\n\nstartDialogue('tagTestingScript')"
+
+	navigator.clipboard.writeText(result);
+
+}
+
+//thefted from https://stackoverflow.com/questions/454202/creating-a-textarea-with-auto-resize
+const tx = document.getElementsByTagName("textarea");
+for (let i = 0; i < tx.length; i++) {
+  tx[i].setAttribute("style", "height:" + (tx[i].scrollHeight) + "px;overflow-y:hidden;");
+  tx[i].addEventListener("input", OnInput, false);
+}
+function OnInput() {
+  this.style.height = 'auto';
+  this.style.height = (this.scrollHeight) + "px";
+}
+
+const speakerMap={
+	"interloper":"self",
+	"velzie":"unknown",
+	"memory hole":"¥Óñ«J",
+	"vekoa":"groundsmind",
+	"proxy":"sys",
+	"mindspike":"sys",
+	"geliblueeyes": "geli::blueeyes",
+	"geliconcern": "geli::concern",
+	"gelihappy": "geli::happy",
+	"gelithink": "geli::think",
+	"geliuncanny": "geli::uncanny",
+	"bsteliblueeyes": "bsteli::blueeyes",
+	"bsteliconcern": "bsteli::concern",
+	"bstelihappy": "bsteli::happy",
+	"bstelithink": "bsteli::think",
+	"bsteliuncanny": "bsteli::uncanny",
+	"gordon":"envoy"
+}
+
+const actorTagList = "".split(" ");
 
 </script>

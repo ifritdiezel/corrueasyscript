@@ -2,6 +2,20 @@
 <meta content="corru dialogue generator" property="og:title" />
 <meta content="write custom scripts easily" property="og:description" />
 
+<style type="text/css">
+code {
+    background: #f4f4f4;
+    color: #666;
+    page-break-inside: avoid;
+    font-family: monospace;
+    line-height: 1.6;
+    margin-bottom: 1.6em;
+    max-width: 100%;
+    overflow: auto;
+    word-wrap: break-word;
+}
+</style>
+
 <h2>corru script generator</h2>
 <p>paste a script from a discord skit with the embassy server custom emoji</p>
 <p>or use actors as <code>moth: lol</code>. no actor makes sourceless text. if you're using a colon in sourceless text escape it with a backslash</p>
@@ -19,19 +33,19 @@
 </textarea>
 
 <br>
-<p>image example: <xmp><img src="https://file.garden/ZBykMtEMpVTUWZ-e/dither-9.png" width="500px"/></xmp></p>
+<p>image example: <code><pre>&lt;img src="https://file.garden/ZBykMtEMpVTUWZ-e/dither-9.png" width="500px"/&gt;</pre></code></p>
 
 <p>add a custom end button using <code>endButton: lmao</code></p>
 
 <p>set the default speaker with <code>defaultSpeaker: akizet</code>. good for making a character monologue or act out a greentext</p>
 
-<p>inherited context example: <xmp><span definition="INHERITED CONTEXT::'predator';'infection';'terror'">secri</span></xmp></p>
+<p>inherited context example: <code><pre>&lt;span definition="INHERITED CONTEXT::'predator';'infection';'terror'"&gt;secri&lt;/span&gt;</pre></code></p>
 <p>automatically add inherited context to text</p>
 <input type="text" name="contextifierType" id="contextifierType" value="INHERITED CONTEXT" placeholder="INHERITED CONTEXT">
 <input type="text" name="contextifierWord" id="contextifierWord" placeholder="secri">
 <input type="text" name="contextifierContexts" id="contextifierContexts" placeholder="predator; infection; terror">
 <button type="button" name="useContextifier" onclick="useContextifier()">replace!</button>
-<button type="button" name="undoContextifier" onclick="undoContextifier()">nevermind, undo</button>
+<button type="button" id="undoContextifier" name="undoContextifier" onclick="undoContextifier()" disabled>nevermind, undo</button>
 <input type="checkbox" id="contextifierCaps" name="contextifierCaps" value=contextifierCaps checked=true>
 <label for="contextifierCaps">repeat for caps text too</label>
 <br>
@@ -40,13 +54,13 @@
 <input type="text" name="massReplacerFrom" id="massReplacerFrom" placeholder="from">
 <input type="text" name="massReplacerTo" id="massReplacerTo" placeholder="to">
 <button type="button" name="massReplacerReplace" onclick="useMassReplacer()">replace!</button>
-<button type="button" name="massReplacerUndo" onclick="undoMassReplace()">wait! undo please!</button>
+<button type="button" id="massReplacerUndo" name="massReplacerUndo" onclick="undoMassReplace()" disabled>wait! undo please!</button>
 <input type="checkbox" id="replacerCaps" name="replacerCaps" value=replacerCaps>
 <label for="replacerCaps">repeat for caps text too</label>
 <br>
 
-<p>add custom actors <button type="button" name="copyTagTestingScript" onclick="copyTagTestingScript()">copy script demonstrating all tags</button></p>
-<textarea id="customActorsInput" name="customActorsInput" cols="200" placeholder="see original script above for examples">env.dialogueActors["ziya"] = {
+<p>add custom actors (these are applied automatically!) <button type="button" name="copyTagTestingScript" onclick="copyTagTestingScript()">copy script demonstrating all types</button></p>
+<textarea id="customActorsInput" name="customActorsInput" cols="200" placeholder="see original script link above for examples">env.dialogueActors["ziya"] = {
     image: "https://uh.fyi/resources/ziya/portrait.gif?",
     element: ".truecreature",
     type: "obesk qou portrait-contain portrait-badstatic",
@@ -56,6 +70,9 @@
 
 
 <script type="text/javascript">
+document.getElementById('massReplacerUndo').disabled = true;
+document.getElementById('undoContextifier').disabled = true;
+
 let actorLoadingScript = ""; //only retrieved once per page reload
 let actorDump = "envoy";
 let customActorsScript = "";
@@ -189,6 +206,13 @@ async function copyScript(dialogueOnly){
 	else element_status.innerHTML = "script copied!";
 }
 
+function resetUndoButtons(mrUndoState, cUndoState){
+	let mrUndo = document.getElementById('massReplacerUndo');
+	let cUndo = document.getElementById('undoContextifier');
+	mrUndo.disabled = !mrUndoState;
+	cUndo.disabled = !cUndoState;
+}
+
 let preReplace = "";
 function useMassReplacer(){
 	let from = document.getElementById('massReplacerFrom').value;
@@ -198,12 +222,14 @@ function useMassReplacer(){
 	preContextify = "";
 	userInput = userInput.replaceAll(from, to);
 	if (document.getElementById('replacerCaps').checked) userInput = userInput.replaceAll(from.toUpperCase(), to.toUpperCase());
+	if (preReplace != userInput) resetUndoButtons(true, false);
 
 	document.getElementById('userinput').value = userInput;
 
 }
 function undoMassReplace(){
 	if (preReplace) document.getElementById('userinput').value = preReplace;
+	resetUndoButtons(false, false);
 }
 
 let preContextify = "";
@@ -231,12 +257,13 @@ function useContextifier(){
 
 	userInput = userInput.replaceAll("%%TEMP4%%", `'">${word}</span>`);
 	userInput = userInput.replaceAll("%%TEMP4_1%%", `'">${word.toUpperCase()}</span>`);
-
+	if (preContextify != userInput) resetUndoButtons(false, true);
 	document.getElementById('userinput').value = userInput;
 
 }
 function undoContextifier(){
 	if (preContextify) document.getElementById('userinput').value = preContextify;
+	resetUndoButtons(false, false);
 }
 
 async function copyTagTestingScript(){

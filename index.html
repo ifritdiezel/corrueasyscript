@@ -37,7 +37,7 @@ code {
 
 <p>add a custom end button using <code>endButton: lmao</code></p>
 
-<p>set the default speaker with <code>defaultSpeaker: akizet</code>. good for making a character monologue or act out a greentext</p>
+<p>set the default speaker with <code>defaultSpeaker: akizet</code>. good for making a character monologue</p>
 
 <p>inherited context example: <code><pre>&lt;span definition="INHERITED CONTEXT::'predator';'infection';'terror'"&gt;secri&lt;/span&gt;</pre></code></p>
 <p>automatically add inherited context to text</p>
@@ -77,7 +77,7 @@ document.getElementById('massReplacerUndo').disabled = true;
 document.getElementById('undoContextifier').disabled = true;
 
 let actorLoadingScript = ""; //only retrieved once per page reload
-let actorDump = "envoy";
+let actorDump = "envoy, stowaway"; //these are never mentioned in the script but their actors are present
 let customActorsScript = "";
 
 async function geActorLoadingScript(){
@@ -147,8 +147,8 @@ async function copyScript(dialogueOnly){
 				currentSpeaker = line.split("%%TEMP%%")[0];
 			}
 			else currentSpeaker = defaultSpeaker;
-			speechValue = line.split("%%TEMP%%")[1] || "​"; //there's a zero width space here to make empty messages
-			if (currentSpeaker == "sourceless") speechValue = line;
+			speechValue = line.split("%%TEMP%%").at(-1).replaceAll("   ", "​ ​ ​ ") || "​"; //there's a zero width space here to make empty messages
+			//if (currentSpeaker == "sourceless") speechValue = line;
 			currentSpeaker = currentSpeaker.split("~")[0];
 
 			speechValue = speechValue.replaceAll("%%TEMP2%%", ":");

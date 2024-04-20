@@ -33,7 +33,7 @@ code {
 </textarea>
 
 <br>
-<p>image example: <code><pre>&lt;img src="https://file.garden/ZBykMtEMpVTUWZ-e/dither-9.png" width="500px"/&gt;</pre></code></p>
+<p>images: just paste the link in! it'll automatically format for jpg, png and webp but use the following if that doesn't work <code><pre>&lt;img src="https://file.garden/ZBykMtEMpVTUWZ-e/dither-9.png" width="500px"/&gt;</pre></code></p>
 
 <p>add a custom end button using <code>endButton: lmao</code></p>
 
@@ -85,7 +85,7 @@ let customActorsScript = "";
 async function geActorLoadingScript(){
 	if (!actorLoadingScript) try {
 		element_status.innerHTML = "now retrieving the actor setup script...";
-		await fetch('https://file.garden/ZdYqv9vlqFbDy9iO/DIALOGUE_TOOLKIT%202.0%20credits%20to%20dem%20for%20organizing%20it.js')
+		await fetch('https://file.garden/ZdYqv9vlqFbDy9iO/dialogue%20toolkit%202%20credits%20to%20dem%20for%20making%20it%20good%20and%20clean.js')
 		.then(response => response.text())
 		.then((data) => {
 			let isAtActorDefs = false;
@@ -161,6 +161,11 @@ async function copyScript(dialogueOnly){
 			currentSpeaker = defaultSpeaker;
 			speechValue = line;
 		}
+		let trimmedSpeech = speechValue.trim();
+		if (  (trimmedSpeech.startsWith("https://") || trimmedSpeech.startsWith("http://")) && ( trimmedSpeech.endsWith(".jpg") || trimmedSpeech.endsWith(".png") || trimmedSpeech.endsWith(".webp"))) {
+			speechValue = `<img src="${trimmedSpeech}" width="500px"/>`
+		}
+
 		if (currentSpeaker.toLowerCase().startsWith("endbutton")){
 			hasEndButton = true;
 			dialogueBody += "\n    \n";

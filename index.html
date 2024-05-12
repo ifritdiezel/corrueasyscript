@@ -29,11 +29,11 @@ code {
 <button type="button" name="copy without actor definitions" onclick="copyDialogueOnly()">copy without actor definitions</button>
 <p id="element_status"></p>
 <br>
-<textarea id="userinput" name="userInput" rows="100" cols="200" placeholder=":moth: lol&#10;endbutton: ok">
+<textarea id="userinput" name="userInput" rows="100" cols="200" placeholder=":moth: lol&#10;THEY REALLY SAID LOL&#10;endbutton: ok">
 </textarea>
 
 <br>
-<p>images: just paste the link in! it'll automatically format for jpg, png and webp but use the following if that doesn't work <code><pre>&lt;img src="https://file.garden/ZBykMtEMpVTUWZ-e/dither-9.png" width="500px"/&gt;</pre></code></p>
+<p>images: just paste the link in! it'll automatically format for jpg, png and webp but use the following if that doesn't work <code><pre>&lt;img src="https://file.garden/ZBykMtEMpVTUWZ-e/dither-9.png" width="400px"/&gt;</pre></code></p>
 
 <p>add a custom end button using <code>endButton: lmao</code></p>
 
@@ -161,9 +161,12 @@ async function copyScript(dialogueOnly){
 			currentSpeaker = defaultSpeaker;
 			speechValue = line;
 		}
+
 		let trimmedSpeech = speechValue.trim();
-		if (  (trimmedSpeech.startsWith("https://") || trimmedSpeech.startsWith("http://")) && ( trimmedSpeech.endsWith(".jpg") || trimmedSpeech.endsWith(".png") || trimmedSpeech.endsWith(".webp"))) {
-			speechValue = `<img src="${trimmedSpeech}" width="500px"/>`
+		let linkTrimmedSpeech = trimmedSpeech.toLowerCase().split('?')[0];
+		console.log(linkTrimmedSpeech);
+		if (  (linkTrimmedSpeech.startsWith("https://") || linkTrimmedSpeech.startsWith("http://")) && ( linkTrimmedSpeech.endsWith(".jpg") ||linkTrimmedSpeech.endsWith(".gif") || linkTrimmedSpeech.endsWith(".png") || linkTrimmedSpeech.endsWith(".webp"))) {
+			speechValue = `<img src="${trimmedSpeech}" width="400px"/>`
 		}
 
 		if (currentSpeaker.toLowerCase().startsWith("endbutton")){

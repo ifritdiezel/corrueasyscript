@@ -165,7 +165,7 @@ async function copyScript(dialogueOnly){
 		let trimmedSpeech = speechValue.trim();
 		let linkTrimmedSpeech = trimmedSpeech.toLowerCase().split('?')[0];
 		console.log(linkTrimmedSpeech);
-		if (  (linkTrimmedSpeech.startsWith("https://") || linkTrimmedSpeech.startsWith("http://")) && ( linkTrimmedSpeech.endsWith(".jpg") ||linkTrimmedSpeech.endsWith(".gif") || linkTrimmedSpeech.endsWith(".png") || linkTrimmedSpeech.endsWith(".webp"))) {
+		if (  (linkTrimmedSpeech.startsWith("https://") || linkTrimmedSpeech.startsWith("http://")) && ( linkTrimmedSpeech.endsWith(".jpeg") || linkTrimmedSpeech.endsWith(".jpg") ||linkTrimmedSpeech.endsWith(".gif") || linkTrimmedSpeech.endsWith(".png") || linkTrimmedSpeech.endsWith(".webp"))) {
 			speechValue = `<img src="${trimmedSpeech}" width="400px"/>`
 		}
 

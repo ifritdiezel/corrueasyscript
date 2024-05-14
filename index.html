@@ -59,7 +59,11 @@ code {
 <button type="button" id="massReplacerUndo" name="massReplacerUndo" onclick="undoMassReplace()" disabled>wait! undo please!</button>
 <input type="checkbox" id="replacerCaps" name="replacerCaps" value=replacerCaps>
 <label for="replacerCaps">repeat for caps text too</label>
-<br>
+<br><br>
+
+
+<input type="checkbox" id="overrideCase" name="overrideCase" value=overrideCase>
+<label for="overrideCase">override case (make funfriend speak lowercase etc) (adds a css rule that sticks until a reload)</label>
 
 <p>add custom actors (these are applied automatically!) <button type="button" name="copyTagTestingScript" onclick="copyTagTestingScript()">copy script demonstrating all types</button></p>
 <textarea id="customActorsInput" name="customActorsInput" cols="200" placeholder="see original script link above for examples">//env.dialogueActors["ziya"] = {
@@ -210,6 +214,10 @@ async function copyScript(dialogueOnly){
 	dialogueBody = dialogueBody.replaceAll("%%TEMP%%", ":");
 	dialogueBody = dialogueBody.replaceAll("%%TEMP2%%", ":");
 	dialogueBody = dialogueBody.replaceAll("%%TEMP3%%", "::");
+
+	if (document.getElementById('overrideCase').checked) {
+		scriptBody += `\ndocument.styleSheets[0].insertRule("* {text-transform: none !important;}", 0);\n`
+	}
 
 	scriptBody += "startDialogue('customScript')"
 

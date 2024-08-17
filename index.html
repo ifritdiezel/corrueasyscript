@@ -29,8 +29,15 @@ code {
 <button type="button" name="copy without actor definitions" onclick="copyDialogueOnly()">copy without actor definitions</button>
 <p id="element_status"></p>
 <br>
-<textarea id="userinput" name="userInput" rows="100" cols="200" placeholder=":moth: lol&#10;THEY REALLY SAID LOL&#10;endbutton: ok">
+<textarea id="userinput" name="userInput" rows="100" cols="200" placeholder=":moth: lol&#10;THEY REALLY SAID LOL&#10;moth: the first colon is optional btw&#10;bsteli::think: this is how you do the emotions see script for details&#10;endbutton: ok">
 </textarea>
+
+<br>
+<input type="checkbox" id="overrideCase" name="overrideCase" value=overrideCase>
+<label for="overrideCase">override case (make funfriend speak lowercase etc) (adds a css rule that sticks until a reload)</label>
+
+<input type="checkbox" id="chatterMode" name="chatterMode" value=chatterMode>
+<label for="chatterMode">chatter mode (dialogue is sent to the log thing on the left)</label>
 
 <br>
 <p>images: just paste the link in! it'll automatically format for jpg, png and webp but use the following if that doesn't work <code><pre>&lt;img src="https://file.garden/ZBykMtEMpVTUWZ-e/dither-9.png" width="400px"/&gt;</pre></code></p>
@@ -61,17 +68,16 @@ code {
 <label for="replacerCaps">repeat for caps text too</label>
 <br><br>
 
-
-<input type="checkbox" id="overrideCase" name="overrideCase" value=overrideCase>
-<label for="overrideCase">override case (make funfriend speak lowercase etc) (adds a css rule that sticks until a reload)</label>
-
-<p>add custom actors (these are applied automatically!) <button type="button" name="copyTagTestingScript" onclick="copyTagTestingScript()">copy script demonstrating all types</button></p>
+<p>add custom actors (or any arbitrary code!) (these are applied automatically!) <button type="button" name="copyTagTestingScript" onclick="copyTagTestingScript()">copy script demonstrating all types</button></p>
 <textarea id="customActorsInput" name="customActorsInput" cols="200" placeholder="see original script link above for examples">//env.dialogueActors["ziya"] = {
     //image: "https://uh.fyi/resources/ziya/portrait.gif?",
     //element: ".truecreature",
     //type: "obesk qou portrait-contain portrait-badstatic",
     //voice: ()=>play('talklaugh', 1.3)
 //};
+
+//emulates the abyss so drowning kazki doesn't error out
+function drowningFear(x){}; if (!env.abyss) env.abyss = {drowningFear}
 </textarea>
 
 <br><br><br>
